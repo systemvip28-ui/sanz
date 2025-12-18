@@ -1,15 +1,966 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Roulette</title>
+<style>
+:root{
+  --bg:#001;     
+  --card:#0f131e;       
+  --muted:#181c26;        
+  --text:#e6e9ef;     
+  --accentLight:#999;  
+  --accentG:#2fbf64;  
+}
 
-  <!-- VERIFIKASI MONETAG -->
-  <meta name="monetag" content="5e06b20b8e604cb3c65854ddc239f38b">
+*{box-sizing:border-box}
 
-  <title>Reward Ads</title>
+body{
+  margin:0;
+  padding:15px;
+  font-family: 'Arial', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header{
+  font-weight:bold;
+  margin-bottom:10px;
+  padding:10px;
+  text-align:center;
+  font-size:20px;
+  color: #e6e9ef;
+  letter-spacing:0.6px;
+}
+
+#saldoCard{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px;
+  border-radius:8px;
+  background: var(--card);
+  border:1px solid var(--muted);
+  box-shadow: inset 2px 2px 6px rgba(0,0,0,.6),
+              inset -2px -2px 6px rgba(255,255,255,.05);
+  margin-bottom:14px;
+  font-weight:bold;
+}
+
+.saldoBtn{
+  width:110px;
+  padding:10px 14px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+  color:#e6e9ef;
+  background: linear-gradient(145deg, #0c0f18, #14182b);
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,.7),
+              inset -2px -2px 5px rgba(255,255,255,.05);
+  transition:0.25s ease;
+}
+
+.saldoBtn.ok{
+  background: linear-gradient(145deg, #333), #333;
+  color:#e6e9ef;
+  box-shadow: inset 2px 2px 6px rgba(0,0,0,.6),
+              inset -2px -2px 6px rgba(255,255,255,.08);
+}
+
+.saldoBtn.warn{
+  background: linear-gradient(145deg, #8a1f1f, #b12b2b);
+}
+
+#rouletteWrapper{
+  position:relative;
+  height:100px;
+  overflow:hidden;
+  margin:20px 0;
+}
+
+#rouletteWrapper::before, #rouletteWrapper::after{
+  content:"";
+  position:absolute;
+  top:0;
+  height:100%;
+  width:120px;
+  pointer-events:none;
+  z-index:5;
+}
+
+#rouletteWrapper::before{
+  left:0;
+  background: linear-gradient(to right, #001, transparent);
+}
+
+#rouletteWrapper::after{
+  right:0;
+  background: linear-gradient(to left, #001, transparent);
+}
+
+#track{
+  position:absolute;
+  top:50px;
+  left:0;
+  display:flex;
+  gap:5px;
+  will-change:transform;
+}
+
+.block{
+  width:80px;
+  height:35px;
+  border-radius:1px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  color:#e6e9ef;
+  background: linear-gradient(145deg, #0c0f18, #14182b);
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,.6),
+              inset -2px -2px 5px rgba(255,255,255,.05);
+}
+
+.redb{ background: linear-gradient(145deg, #7d1f29, #a32a37); }
+.blackb{ background: linear-gradient(145deg, #090b10, #0f1116); }
+.greenb{ background: linear-gradient(145deg, #2a8f52, #33a964); }
+
+#arrow{
+  position:absolute;
+  left:50%;
+  top:23px;
+  transform:translateX(-50%);
+  border-left:14px solid transparent;
+  border-right:14px solid transparent;
+  border-top:18px solid var(--accentLight);
+}
+
+#centerCountdown{
+  position:absolute;
+  left:50%;
+  top:-2px;
+  transform:translateX(-50%);
+  font-weight:700;
+  font-size:20px;
+  color: #999;
+}
+
+#bets{
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.betbtn{
+  flex:1;
+  padding:14px;
+  border-radius:8px;
+  border:none;
+  font-size:16px;
+  cursor:pointer;
+  font-weight:bold;
+  color:#e6e9ef;
+  background: linear-gradient(145deg, #0c0f18, #14182b);
+  box-shadow: inset 2px 2px 6px rgba(0,0,0,.6),
+              inset -2px -2px 6px rgba(255,255,255,.05);
+  transition:0.25s;
+}
+
+.betbtn.red{ background: linear-gradient(145deg, #7d1f29, #a32a37); }
+
+.betbtn.black{ background: linear-gradient(145deg, #090b10, #0f1116); }
+
+.betbtn.green{ background: linear-gradient(145deg, #2a8f52, #33a964); }
+
+#tabs{
+  display:flex;
+  gap:8px;
+  margin-top:15px;
+}
+
+.tabbtn{
+  flex:1;
+  padding:12px;
+  font-weight:bold;
+  border-radius:8px;
+  border:1px solid var(--muted);
+  background: var(--card);
+  color:#e6e9ef;
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,.6),
+              inset -2px -2px 5px rgba(255,255,255,.05);
+  transition:0.25s;
+}
+
+#transaksi{
+  margin-top:10px;
+  background:var(--card);
+  padding:12px;
+  border-radius:8px;
+  max-height:360px;
+  display: none;
+  overflow:auto;
+  border:1px solid var(--muted);
+  box-shadow: inset 2px 2px 8px rgba(0,0,0,.5),
+              inset -2px -2px 8px rgba(255,255,255,.05);
+}
+
+#history{
+  margin-top:10px;
+  background:var(--card);
+  padding:12px;
+  border-radius:8px;
+  max-height:360px;
+  overflow:auto;
+  border:1px solid var(--muted);
+  box-shadow: inset 2px 2px 8px rgba(0,0,0,.5),
+              inset -2px -2px 8px rgba(255,255,255,.05);
+}
+
+.entry{
+  padding:8px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.badge{
+  background:#0f131a;
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:12px;
+  color: var(--accent);
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,.7);
+  z-index:9999;
+}
+
+.card{
+  background:#0f131a;
+  padding:18px;
+  border-radius:8px;
+  width:92%;
+  max-width:420px;
+  border:1px solid var(--muted);
+  text-align:center;
+  box-shadow: inset 2px 2px 8px rgba(0,0,0,.6),
+              inset -2px -2px 8px rgba(255,255,255,.05);
+}
+
+#manualOverlay input,#manualOverlay select{
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border:1px solid var(--muted);
+  border-radius:8px;
+  background:#0c0f14;
+  color:#e6e9ef;
+  outline:none;
+  margin-bottom:12px;
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,.6),
+              inset -2px -2px 5px rgba(255,255,255,.05);
+  transition:0.25s ease;
+}
+
+#manualOverlay input:focus,
+#manualOverlay select:focus{
+  background:#10131a;
+}
+
+input, select{
+  width: 92%;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 15px;
+  border-radius:8px;
+  border:1px solid var(--muted);
+  background:#0c0f14;
+  color: var(--text);
+  outline:none;
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,.6),
+              inset -2px -2px 5px rgba(255,255,255,.05);
+  transition:0.25s ease;
+}
+
+input::placeholder{
+  color:#9aa2b1;
+  opacity:0.7;
+}
+
+input:focus, select:focus{
+  background:#10131a;
+}
+
+select{
+  appearance:none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%239aa2b1' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:16px;
+  padding-right:36px;
+}
+
+@media(max-width:520px){
+  .block{width:66px}
+}
+</style>
 </head>
 <body>
-  <h1>Reward Ads Platform</h1>
+<header>Project #72946</header>
+
+<div id="container">
+  <div id="saldoCard">
+    <div>
+      <div>Rp <span id="adminBalanceTxt">0</span></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="saldoBtn ok" onclick="openManualTopup()">Deposit</button>
+    </div>
+  </div>
+
+  <div id="rouletteWrapper">
+    <div id="centerCountdown">15:00</div>
+    <div id="arrow"></div>
+    <div id="track"></div>
+  </div>
+
+  <div id="bets">
+    <button class="betbtn red" onclick="openBetModal('red')">Merah x2</button>
+    <button class="betbtn green" onclick="openBetModal('green')">Hijau x14</button>
+    <button class="betbtn black" onclick="openBetModal('black')">Hitam x2</button>
+  </div>
+
+  <div id="tabs">
+    <button class="tabbtn" onclick="showTab('history')">Riwayat</button>
+    <button class="tabbtn" onclick="showTab('transaksi')">Transaksi</button>
+  </div>
+
+  <div id="history"></div>
+  <div id="graph" style="display:none">
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <div style="flex:1;background:#111;padding:8px;border-radius:8px;text-align:center">Merah <div id="pct-red"><b>0%</b></div></div>
+      <div style="flex:1;background:#111;padding:8px;border-radius:8px;text-align:center">Hitam <div id="pct-black"><b>0%</b></div></div>
+      <div style="flex:1;background:#111;padding:8px;border-radius:8px;text-align:center">Hijau <div id="pct-green"><b>0%</b></div></div>
+    </div>
+    <div id="graphCanvasWrap" style="display:flex;gap:8px">
+
+      <div style="flex:1;background:#111;padding:16px;border-radius:8px;border:1px solid #222;text-align:center">Grafik ringkas tersedia di persen.</div>
+    </div>
+  </div>
+  <div id="transaksi"></div>
+</div>
+
+<div id="modalOverlay" class="overlay">
+  <div class="card">
+    <h3>Konfirmasi Taruhan</h3>
+    <div id="modalColor"></div>
+    <input id="modalInput" type="number" placeholder="Masukkan nominal">
+    <input style="display:none" id="modalTelegramId" type="text" placeholder="Telegram ID (opsional)">
+    <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+      <button class="saldoBtn cancel" onclick="closeModal()">Batal</button>
+      <button class="saldoBtn ok" onclick="confirmBet()">Pasang</button>
+    </div>
+  </div>
+</div>
+
+<div id="manualOverlay" class="overlay">
+  <div class="card">
+    <h3 id="manualTitle">Deposit</h3>
+    <input id="manualTelegram" type="text" placeholder="Nama" value="">
+    <input id="manualAmount" type="number" placeholder="Nominal">
+    <select id="manualBank" style="display:none">
+      <option value="">Pilih Bank / E-wallet</option>
+      <option value="BCA">BCA</option>
+      <option value="BRI">BRI</option>
+      <option value="BNI">BNI</option>
+      <option value="Mandiri">Mandiri</option>
+      <option value="DANA">DANA</option>
+      <option value="OVO">OVO</option>
+      <option value="Gopay">GoPay</option>
+    </select>
+    <input id="manualRek" type="text" placeholder="Nomor Rek / No. HP (untuk e-wallet)" style="display:none">
+    <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+      <button class="saldoBtn ok" onclick="doManualAction()">Kirim</button>
+      <button class="saldoBtn cancel" onclick="closeManual()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BOT_TOKEN = "8160071183:AAG9RGO2NdeBFXpqdwF9t7KJKQizZxwoUmo"; 
+const ADMIN_CHAT_ID = "1414540300";
+const TG_API = BOT_TOKEN && ADMIN_CHAT_ID ? `https://api.telegram.org/bot${BOT_TOKEN}/` : null;
+
+function bumpStorageVersion(){ try{ localStorage.setItem("storage_version", String(Date.now())); } catch(e){} }
+
+function getLS(k,f){ try{ let r=localStorage.getItem(k); return r?JSON.parse(r):f; }catch(e){ return f; } }
+function setLS(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); bumpStorageVersion(); }catch(e){} }
+
+window.addEventListener('storage', ()=>{
+  pendingTopup    = getLS('pendingTopup', []);
+  transaksiData   = getLS('transaksiData', []);
+  historyData     = getLS('historyData', []);
+  usersData       = getLS('usersData', {});
+  balance         = Number(getLS('balance',0)||0);
+
+  document.getElementById('adminBalanceTxt').textContent = balance.toLocaleString('id-ID');
+  renderTransaksi(); renderHistory();
+});
+
+let balance         = Number(getLS('balance',0)||0);
+let usersData       = getLS('usersData', {});
+let historyData     = getLS('historyData', []);
+let transaksiData   = getLS('transaksiData', []);
+let pendingTopup    = getLS('pendingTopup', []);
+
+document.getElementById('adminBalanceTxt').textContent = balance.toLocaleString('id-ID');
+
+async function sendMessage(chatId, text, extra = {}) {
+  if(!TG_API) return;
+  try {
+    const body = {
+      chat_id: String(chatId),
+      text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true
+    };
+
+    if (extra.reply_markup) body.reply_markup = JSON.stringify(extra.reply_markup);
+
+    Object.keys(extra).forEach(k=>{
+      if(k === 'reply_markup') return;
+      body[k] = extra[k];
+    });
+
+    await fetch(TG_API + 'sendMessage', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+  } catch(e){}
+}
+
+function editMessageText(chatId, messageId, text, extra = {}) {
+  if(!TG_API) return;
+  try{
+    const body = {
+      chat_id: String(chatId),
+      message_id: messageId,
+      text,
+      parse_mode: 'HTML'
+    };
+    if (extra.reply_markup) body.reply_markup = JSON.stringify(extra.reply_markup);
+    fetch(TG_API + 'editMessageText', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+  }catch(e){}
+}
+
+function editMessageReplyMarkup(chatId, messageId, reply_markup=null){
+  if(!TG_API) return;
+  try{
+    const body = {
+      chat_id: String(chatId),
+      message_id: messageId,
+      reply_markup: reply_markup ? JSON.stringify(reply_markup) : null
+    };
+    fetch(TG_API + 'editMessageReplyMarkup', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+  }catch(e){}
+}
+
+function answerCallbackQuery(callbackQueryId, text = '') {
+  if(!TG_API) return;
+  fetch(TG_API + 'answerCallbackQuery', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({callback_query_id: callbackQueryId, text, show_alert: false})
+  }).catch(()=>{});
+}
+
+function generateTrack(){
+  const track = document.getElementById('track');
+  track.innerHTML = '';
+  const pattern = ['redb','blackb','redb','blackb','redb','blackb','redb','blackb','redb','blackb','redb','blackb','greenb'];
+  for(let i=0;i<80;i++){
+    const d=document.createElement('div');
+    d.className='block '+pattern[i%pattern.length];
+    track.appendChild(d);
+  }
+}
+generateTrack();
+
+function getResultFromArrow(){
+  const blocks=[...document.querySelectorAll('.block')];
+  if(blocks.length===0)return null;
+  const arrowX = window.innerWidth/2;
+  let best=null,dist=999999;
+  blocks.forEach(b=>{
+    const r=b.getBoundingClientRect();
+    const mid=r.left+r.width/2;
+    const d=Math.abs(mid-arrowX);
+    if(d<dist){dist=d;best=b;}
+  });
+  if(!best)return null;
+  if(best.classList.contains('greenb')) return 'green';
+  if(best.classList.contains('redb')) return 'red';
+  return 'black';
+}
+
+let currentBetColor=null;
+let currentBets=[];
+let spinning=false;
+
+function openBetModal(color){
+  if(spinning) return;
+  currentBetColor=color;
+  document.getElementById('modalColor').textContent='Warna: '+color.toUpperCase();
+  document.getElementById('modalInput').value='';
+  document.getElementById('modalTelegramId').value='';
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function closeModal(){ document.getElementById('modalOverlay').style.display='none'; }
+
+function confirmBet(){
+  const amt = parseInt(document.getElementById('modalInput').value||'0');
+  const tg  = (document.getElementById('modalTelegramId').value||'').trim();
+  if(!amt||amt<=0) return alert('Jumlah tidak valid');
+  if(amt > balance) return alert('Saldo tidak cukup');
+
+  const period = generatePeriod();
+  const transId = Date.now(); 
+
+  const bet = {
+    color: currentBetColor,
+    amount: amt,
+    status: 'Pending',
+    winlose: null,
+    telegramId: tg || null,
+    period,
+    transId 
+  };
+
+  currentBets.push(bet);
+
+  balance -= amt;
+  setLS('balance', balance);
+  document.getElementById('adminBalanceTxt').textContent = balance.toLocaleString('id-ID');
+
+  transaksiData.push({
+    id: transId,
+    kind:'bet',
+    period,
+    type: currentBetColor,
+    amount: amt,
+    status:'pending',
+    telegramId: tg || null
+  });
+  setLS('transaksiData', transaksiData);
+
+  if(tg) sendMessage(tg,`Bet terdaftar: Rp${amt.toLocaleString('id-ID')} pada ${currentBetColor}.`);
+
+  closeModal(); renderTransaksi();
+}
+
+let manualMode='topup';
+function openManualTopup(){ manualMode='topup'; document.getElementById('manualTitle').textContent='Deposit #72946'; document.getElementById('manualBank').style.display='none'; document.getElementById('manualRek').style.display='none'; document.getElementById('manualOverlay').style.display='flex'; }
+function closeManual(){ document.getElementById('manualOverlay').style.display='none'; }
+
+function copyToClipboard(t){ navigator.clipboard.writeText(t).then(()=>alert("Disalin")); }
+
+function doManualAction(){
+  const tg = String(document.getElementById('manualTelegram').value||'').trim();
+  const amt = parseInt(document.getElementById('manualAmount').value||'0');
+  if(!tg) return alert('Masukkan nama terlebih dahulu');
+  if(!amt||amt<=0) return alert('Nominal tidak valid');
+
+  const req={id:Date.now(), telegramId:tg, amount:amt, status:'pending'};
+  pendingTopup.push(req);
+  setLS('pendingTopup', pendingTopup);
+
+  let msg = `<b>Deposit</b>\n\nNama: <b>${tg}</b>\nNominal: <b>Rp${amt.toLocaleString('id-ID')}</b>\nID: <b>${req.id}</b>\n\n`;
+
+  const keyboard = {
+    inline_keyboard: [
+      [
+        { text: "Confirm", callback_data: `acc_topup:${req.id}` },
+        { text: "Reject", callback_data: `reject_topup:${req.id}` }
+      ]
+    ]
+  };
+
+  sendMessage(ADMIN_CHAT_ID, msg, { reply_markup: keyboard });
+  alert("Request terkirim");
+
+  closeManual(); renderTransaksi();
+}
+
+const NEXT_SPIN_KEY='nextSpinTime';
+let nextSpinTime = Number(getLS(NEXT_SPIN_KEY,0)||0);
+if(!nextSpinTime || nextSpinTime < Date.now()){
+  nextSpinTime = Date.now() + 15000;
+  setLS(NEXT_SPIN_KEY, nextSpinTime);
+}
+
+function scheduleNextSpin(){
+  nextSpinTime = Date.now()+15000;
+  setLS(NEXT_SPIN_KEY, nextSpinTime);
+}
+
+setInterval(()=>{
+  nextSpinTime = Number(getLS(NEXT_SPIN_KEY,nextSpinTime)||nextSpinTime);
+  let diff=nextSpinTime-Date.now();
+  if(diff<0) diff=0;
+  const s=Math.floor(diff/1000);
+  const ms=Math.floor((diff%1000)/10);
+  document.getElementById('centerCountdown').textContent =
+    `${String(s).padStart(2,'0')}:${String(ms).padStart(2,'0')}`;
+  if(diff<=0 && !spinning){ spinning=true; startSpin(); }
+},50);
+
+function closeAnyOpenModal(){
+  if(document.getElementById('modalOverlay').style.display==='flex')
+    document.getElementById('modalOverlay').style.display='none';
+}
+
+function startSpin(){
+  closeAnyOpenModal();
+
+  const track=document.getElementById('track');
+  track.style.transition='none';
+  track.style.transform='translateX(0px)';
+  const blocks=document.querySelectorAll('.block');
+  if(blocks.length===0){ spinning=false; scheduleNextSpin(); return; }
+
+  const total=blocks.length;
+  const idx=Math.floor(Math.random()*total);
+  const rect=blocks[0].getBoundingClientRect();
+  const bw = Math.round(rect.width+6);
+  const centerOff = (window.innerWidth/2)-(rect.width/2);
+  const finalDist = -(idx*bw)+centerOff;
+
+  setTimeout(()=>{
+    const startDist = bw * -8;
+    track.style.transform=`translateX(${startDist}px)`;
+    track.style.transition='transform 4.6s cubic-bezier(.05,.82,.16,1)';
+    track.style.transform=`translateX(${finalDist}px)`;
+    track.addEventListener('transitionend',function end(e){
+      if(e.propertyName!=='transform') return;
+      track.removeEventListener('transitionend',end);
+      track.style.transition='none';
+      track.style.transform=`translateX(${finalDist}px)`;
+      setTimeout(()=>finishSpinAccurate(),80);
+    });
+  },20);
+}
+
+function finishSpinAccurate(){
+  let result=getResultFromArrow();
+  if(!result){
+    const r=Math.random();
+    result = r<0.48?'black':r<0.96?'red':'green';
+  }
+
+  giveResult(result);
+  logHistory(result);
+
+  setTimeout(()=>{
+    generateTrack();
+    spinning=false;
+    scheduleNextSpin();
+  },700);
+}
+
+function giveResult(result){
+  currentBets.forEach(bet=>{
+    const multi = bet.color==='green'?14:2;
+
+    const trans = transaksiData.find(t => t.id === bet.transId);
+
+    if(bet.color === result){
+      const win = bet.amount * multi;
+
+      balance += win;
+      setLS('balance', balance);
+      document.getElementById('adminBalanceTxt').textContent = balance.toLocaleString('id-ID');
+
+      bet.status='WIN';
+      bet.winlose=win;
+
+      if(trans){
+        trans.status='WIN';
+        trans.winlose=win;
+      }
+
+      if(bet.telegramId){
+        if(!usersData[bet.telegramId]) usersData[bet.telegramId]={balance:0};
+        usersData[bet.telegramId].balance += win;
+        setLS('usersData', usersData);
+        sendMessage(bet.telegramId, `Bet MENANG! +Rp${win.toLocaleString('id-ID')}`);
+      }
+    } else {
+      bet.status='LOSE';
+      bet.winlose=0;
+      if(trans){
+        trans.status='LOSE';
+        trans.winlose=0;
+      }
+      if(bet.telegramId){
+        sendMessage(bet.telegramId,"Bet KALAH.");
+      }
+    }
+  });
+
+  setLS('transaksiData', transaksiData);
+  renderTransaksi();
+  currentBets=[];
+}
+
+function generatePeriod(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=String(now.getMonth()+1).padStart(2,'0');
+  const d=String(now.getDate()).padStart(2,'0');
+  const base=`${y}${m}${d}`;
+  const todayHistory = historyData.filter(h=>String(h.period).startsWith(base));
+  return Number(base + (todayHistory.length+1));
+}
+
+function logHistory(r){
+  historyData.push({period:generatePeriod(),result:r});
+  setLS('historyData',historyData);
+}
+
+function renderHistory(){
+  const el=document.getElementById('history');
+  el.innerHTML='';
+  historyData.slice().reverse().forEach(h=>{
+    const d=document.createElement('div');
+    d.className='entry';
+    d.innerHTML=`<div style="flex:1"><b>RESULT</b> | ${h.period} | ${h.result}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderTransaksi(){
+  const el=document.getElementById('transaksi');
+  el.innerHTML='';
+
+  pendingTopup.slice().reverse().forEach(p=>{
+    const div=document.createElement('div');
+    div.className='entry';
+    div.innerHTML=`<div style="flex:1"><b>Deposit</b> | Rp${p.amount.toLocaleString('id-ID')} | ${p.id} | pending</div>`;
+    el.appendChild(div);
+  });
+
+  transaksiData.slice().reverse().forEach(t=>{
+    if(t.kind==='bet')
+      el.innerHTML += `<div class='entry'><div style="flex:1"><b>BET</b> | ${t.period} | ${t.type} | Rp${t.amount.toLocaleString('id-ID')} | ${t.status}</div></div>`;
+    else if(t.kind.startsWith('topup'))
+      el.innerHTML += `<div class='entry'><div style="flex:1"><b>Deposit</b> | Rp${t.amount.toLocaleString('id-ID')} | ${t.status}</div></div>`;
+    else
+      el.innerHTML += `<div class='entry'><div style="flex:1"><b>${t.kind.toUpperCase()}</b> Rp${t.amount ? t.amount.toLocaleString('id-ID') : ''} | ${t.status||''}</div></div>`;
+  });
+}
+
+renderTransaksi(); renderHistory();
+
+function showTab(id){
+  ['history','graph','transaksi'].forEach(x=> document.getElementById(x).style.display='none');
+  document.getElementById(id).style.display='block';
+}
+
+function applyAdminAction(type,id){
+
+  id = Number(id);
+  if(type==='acc_topup'){
+    const idx=pendingTopup.findIndex(p=>p.id===id);
+    if(idx===-1) return;
+    const req=pendingTopup[idx];
+
+    if(!usersData[req.telegramId]) usersData[req.telegramId]={balance:0};
+    usersData[req.telegramId].balance += req.amount;
+    setLS('usersData',usersData);
+
+    balance += req.amount;
+    setLS('balance',balance);
+    document.getElementById('adminBalanceTxt').textContent=balance.toLocaleString('id-ID');
+
+    transaksiData.push({id:Date.now(), kind:'topup', telegramId:req.telegramId, amount:req.amount, status:'success'});
+    setLS('transaksiData',transaksiData);
+
+    pendingTopup.splice(idx,1);
+    setLS('pendingTopup',pendingTopup);
+
+    sendMessage(req.telegramId,`Topup +Rp${req.amount.toLocaleString('id-ID')}`);
+    renderTransaksi();
+    return;
+  }
+
+  if(type==='reject_topup'){
+    const idx=pendingTopup.findIndex(p=>p.id===id);
+    if(idx===-1)return;
+    const req=pendingTopup[idx];
+
+    pendingTopup.splice(idx,1);
+    setLS('pendingTopup',pendingTopup);
+
+    transaksiData.push({id:Date.now(),kind:'topup',telegramId:req.telegramId,amount:req.amount,status:'rejected'});
+    setLS('transaksiData',transaksiData);
+
+    sendMessage(req.telegramId,'Topup ditolak');
+    renderTransaksi();
+    return;
+  }
+
+  if(type==='reset_all'){
+    pendingTopup=[];
+    transaksiData=[]; historyData=[];
+    currentBets=[]; usersData={}; balance=0;
+
+    setLS('balance',0);
+    setLS('usersData',usersData);
+    setLS('pendingTopup', pendingTopup);
+    setLS('transaksiData',transaksiData);
+    setLS('historyData',historyData);
+
+    scheduleNextSpin();
+    renderTransaksi(); renderHistory();
+
+    sendMessage(ADMIN_CHAT_ID, "");
+    return;
+  }
+}
+
+let tg_offset = Number(getLS('tg_offset',0)||0);
+
+async function pollBot(){
+  if(!TG_API) return setTimeout(pollBot,2000);
+  try{
+    const r=await fetch(TG_API+`getUpdates?offset=${tg_offset}&timeout=10`);
+    const d=await r.json();
+    if(d && Array.isArray(d.result)){
+      for(const up of d.result){
+        tg_offset = up.update_id+1;
+        setLS('tg_offset',tg_offset);
+
+        if(up.callback_query){
+          const cb = up.callback_query;
+          const from = cb.from.id;
+
+          if(String(from) !== String(ADMIN_CHAT_ID)){
+            answerCallbackQuery(cb.id, "Unauthorized");
+            continue;
+          }
+
+          const data = cb.data || '';
+          const parts = data.split(':');
+          const cmd = parts[0];
+          const id = parts[1] || '0';
+
+          answerCallbackQuery(cb.id, "Diproses...");
+
+          applyAdminAction(cmd, id);
+
+          try{
+            const msg = cb.message;
+            const chatId = msg.chat.id;
+            const messageId = msg.message_id;
+
+            editMessageReplyMarkup(chatId, messageId, null);
+
+            editMessageText(chatId, messageId, msg.text + `\n\n<i></i>${cmd} ${id}`);
+          }catch(e){}
+          continue;
+        }
+
+        const msg = up.message;
+        if(!msg||!msg.text) continue;
+        const text = msg.text.trim();
+        const from = msg.from.id;
+
+        if(String(from) !== String(ADMIN_CHAT_ID)) {
+  
+          if(text === '/help') {
+            sendMessage(from, "Gunakan document panel untuk bantuan.");
+          }
+          continue;
+        }
+
+        if(text.startsWith('/list')){
+          let out = 'Request Pending:\n\n';
+          pendingTopup.forEach(p=> out+=`Deposit | Rp${p.amount.toLocaleString('id-ID')} | ID:${p.id}\n`);
+          sendMessage(ADMIN_CHAT_ID, out);
+          continue;
+        }
+
+        if(text.startsWith('/help')){
+          const help = "<b>ADMIN COMMANDS</b>\n\n" +
+            "• Semua approval menggunakan tombol CONFIRM/REJECT pada pesan\n" +
+            "• /balance <telegramId> Cek saldo user\n" +
+            "• /list Lihat request pending\n" +
+            "• /reset Hapus semua data\n\n" +
+            "Catatan: Hanya admin yang dapat menggunakan perintah ini.";
+
+          const keyboard = {
+            inline_keyboard: [
+              [{ text: "RESET SEMUA DATA", callback_data: "reset_all:0" }]
+            ]
+          };
+          sendMessage(ADMIN_CHAT_ID, help, { reply_markup: keyboard });
+          continue;
+        }
+
+        if(text.startsWith('/balance')){
+          const parts = text.split(/\s+/);
+          const uid = parts[1];
+          if(!uid){
+            sendMessage(ADMIN_CHAT_ID, "Format: /balance <TelegramID>");
+            continue;
+          }
+          const bal = usersData[uid]?.balance || 0;
+          sendMessage(ADMIN_CHAT_ID, `Saldo user ${uid}: Rp${bal.toLocaleString('id-ID')}`);
+          continue;
+        }
+
+        if(text.startsWith('/reset')){
+          applyAdminAction('reset_all', 0);
+          sendMessage(ADMIN_CHAT_ID, "Semuanya sudah di-reset.");
+          continue;
+        }
+
+      }
+    }
+  }catch(e){}
+  setTimeout(pollBot,1500);
+}
+pollBot();
+
+setInterval(()=>{
+  pendingTopup    = getLS('pendingTopup',[]);
+  transaksiData   = getLS('transaksiData',[]);
+  historyData     = getLS('historyData',[]);
+  usersData       = getLS('usersData',usersData);
+  balance         = Number(getLS('balance',0)||0);
+
+  document.getElementById('adminBalanceTxt').textContent = balance.toLocaleString('id-ID');
+  renderTransaksi(); renderHistory();
+},2500);
+
+</script>
 </body>
 </html>
